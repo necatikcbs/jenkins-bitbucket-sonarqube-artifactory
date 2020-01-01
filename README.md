@@ -1,0 +1,1 @@
+# jenkins-bitbucket-sonarqube-artifactory
