@@ -1,0 +1,65 @@
+
+version: '3'
+services:
+  jenkins:
+    image: ${JENKINS_IMAGE_NAME}
+    container_name: jenkins
+    volumes: 
+      - ./jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: jenkins
+    ports: 
+      - "8080:8080"
+      - "5000:5000"
+      - "50000:50000"
+    networks:
+      - jenk-bit-sonar-artify
+  sonarqube:
+    image: ${SONARQUBE_IMAGE_NAME}
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    networks: 
+      - jenk-bit-sonar-artify
+  artifactory:
+    image: ${ARTIFACTORY_IMAGE_NAME}
+    container_name: artifactory
+    ports: 
+      - "8081:8081"
+    networks: 
+      - jenk-bit-sonar-artify
+  bitbucket:
+    image: ${BITBUCKET_IMAGE_NAME}
+    depends_on: 
+      - postgresql
+    links: 
+      - postgresql
+    container_name: bitbucket
+    # user: bitbucket
+    # environment: 
+    #   - 'DOCKER_WAIT_HOST=postgresql'
+    #   - 'DOCKER_WAIT_PORT=5432'
+    volumes: 
+      - ./bitbucket:/var/atlassian/application-data/bitbucket
+    ports: 
+      - "7990:7990"
+      - "7999:7999"
+    networks:
+      - jenk-bit-sonar-artify
+  postgresql:
+    image: ${POSTGRESQL_IMAGE_NAME}
+    restart: always
+    container_name: postgresql
+    environment: 
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=postgres"
+      - "POSTGRES_DB=posdb"
+      - "POSTGRES_ENCODING=UTF8"
+    volumes: 
+      - ./postgresql:/var/lib/postgresql/data
+      - ./init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    networks: 
+      - jenk-bit-sonar-artify
+networks: 
+  jenk-bit-sonar-artify:
+    driver: bridge
